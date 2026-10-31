@@ -28,7 +28,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+  const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
   const prompt = `あなたは高校の授業実践報告書を作成するアシスタントです。
 教師が入力したキーワードや箇条書きを、「${fieldName}」として報告書に適した自然な文体（です・ます調）に変換してください。
