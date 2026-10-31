@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DX機器活用授業実践報告書</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pr:#1e3a5f;--pr2:#2a5298;--acc:#e8f0fe;
+  --bg:#f0f4f8;--card:#fff;--text:#1a1a2e;
+  --mu:#666;--bd:#ccd6e0;--gn:#27ae60;--r:10px;
+}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* プログレスバー */
+.pbar{position:fixed;top:0;left:0;right:0;height:4px;background:var(--bd);z-index:100}
+.pfill{height:100%;background:var(--pr);transition:width .4s ease}
+
+/* 画面共通 */
+.screen{display:none;flex-direction:column;min-height:100vh;
+  padding:52px 20px 120px;max-width:680px;margin:0 auto;width:100%}
+.screen.active{display:flex}
+.step-no{font-size:.75rem;font-weight:700;letter-spacing:.12em;color:var(--mu);margin-bottom:10px}
+.q-title{font-size:clamp(1.3rem,5vw,1.9rem);font-weight:700;color:var(--pr);line-height:1.4;margin-bottom:10px}
+.q-hint{font-size:.88rem;color:var(--mu);line-height:1.7;margin-bottom:24px}
+
+/* 入力欄 */
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.field>label{display:block;font-size:.8rem;font-weight:700;color:var(--pr);margin-bottom:5px}
+.opt{font-weight:400;color:#aaa;font-size:.75rem;margin-left:3px}
+.inp,.sel,.ta{width:100%;padding:13px 15px;border:2px solid var(--bd);border-radius:8px;
+  font-size:.98rem;font-family:inherit;background:var(--card);color:var(--text);
+  outline:none;transition:border-color .2s}
+.inp:focus,.sel:focus,.ta:focus{border-color:var(--pr)}
+.ta{resize:vertical;line-height:1.7;min-height:110px}
+
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:500px){.row2{grid-template-columns:1fr}}
+
+/* AIボタン */
+.ai-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;
+  background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;
+  border-radius:20px;font-size:.85rem;font-weight:700;cursor:pointer;
+  font-family:inherit;margin-top:8px;transition:opacity .2s,transform .1s;
+  box-shadow:0 2px 10px rgba(102,126,234,.4)}
+.ai-btn:hover{opacity:.9}.ai-btn:active{transform:scale(.97)}
+.ai-btn:disabled{opacity:.6;cursor:not-allowed}
+
+/* カード */
+.card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.card-lbl{font-size:.78rem;font-weight:700;color:var(--pr);margin-bottom:12px}
+
+/* フェーズバッジ */
+.phase-badge{display:inline-block;padding:3px 14px;border-radius:15px;
+  background:var(--pr);color:#fff;font-size:.82rem;font-weight:700;margin-bottom:20px}
+
+/* 写真アップロード */
+.photo-box{border:2px dashed var(--bd);border-radius:8px;padding:20px;text-align:center;
+  cursor:pointer;background:#f8fafd;min-height:110px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  transition:border-color .2s,background .2s}
+.photo-box:hover{border-color:var(--pr);background:#eaf0f8}
+.photo-box.has-img{border-style:solid;border-color:var(--gn);background:#f0fff4}
+.photo-box img{max-width:100%;max-height:130px;border-radius:6px;object-fit:contain}
+.photo-box .icon{font-size:1.8rem}.photo-box .ph{font-size:.78rem;color:var(--mu)}
+.photo-clr{background:none;border:none;color:#c0392b;font-size:.78rem;cursor:pointer;text-decoration:underline;margin-top:4px;display:none}
+input[type=file]{display:none}
+
+/* ナビゲーションバー（固定下部） */
+.nav-wrap{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);
+  backdrop-filter:blur(8px);border-top:1px solid var(--bd);padding:14px 20px;z-index:50}
+.nav-inner{max-width:680px;margin:0 auto;display:flex;gap:10px;justify-content:space-between;align-items:center}
+.btn-back{padding:12px 22px;background:none;border:2px solid var(--bd);border-radius:8px;
+  font-size:.95rem;cursor:pointer;font-family:inherit;color:var(--mu);transition:border-color .2s,color .2s}
+.btn-back:hover{border-color:var(--pr);color:var(--pr)}
+.btn-next{padding:12px 28px;background:var(--pr);color:#fff;border:none;border-radius:8px;
+  font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;
+  box-shadow:0 4px 14px rgba(30,58,95,.3);transition:background .2s,transform .1s}
+.btn-next:hover{background:#163050}.btn-next:active{transform:scale(.97)}
+.btn-next:disabled{background:#999;box-shadow:none;cursor:not-allowed}
+
+/* イントロ画面 */
+.intro-body{flex:1;display:flex;flex-direction:column;justify-content:center}
+.intro-icon{font-size:3rem;text-align:center;margin-bottom:14px}
+.intro-title{font-size:clamp(1.3rem,4.5vw,1.8rem);font-weight:700;color:var(--pr);text-align:center;margin-bottom:8px;line-height:1.3}
+.intro-sub{font-size:.88rem;color:var(--mu);text-align:center;line-height:1.7;margin-bottom:28px}
+.intro-list{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:28px}
+.intro-item{display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid #f0f0f0}
+.intro-item:last-child{border-bottom:none}
+.intro-item .num{width:26px;height:26px;border-radius:50%;background:var(--pr);color:#fff;
+  font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.intro-item .txt{font-size:.88rem;line-height:1.5}
+.start-btn{width:100%;padding:17px;background:var(--pr);color:#fff;border:none;border-radius:10px;
+  font-size:1.05rem;font-weight:700;cursor:pointer;font-family:inherit;
+  box-shadow:0 4px 20px rgba(30,58,95,.3);transition:background .2s}
+.start-btn:hover{background:#163050}
+
+/* プレビュー画面 */
+.preview-block{background:var(--card);border:1px solid var(--bd);border-radius:8px;margin-bottom:12px;overflow:hidden}
+.preview-head{background:var(--pr);color:#fff;padding:8px 14px;font-size:.85rem;font-weight:700}
+.preview-row{padding:10px 14px;border-bottom:1px solid #f0f0f0}
+.preview-row:last-child{border-bottom:none}
+.preview-row .lbl{font-size:.72rem;color:var(--mu);font-weight:700;margin-bottom:3px}
+.p-inp{width:100%;padding:7px 10px;border:1.5px solid var(--bd);border-radius:6px;font-size:.9rem;font-family:inherit;outline:none}
+.p-inp:focus{border-color:var(--pr)}
+.p-ta{width:100%;padding:7px 10px;border:1.5px solid var(--bd);border-radius:6px;
+  font-size:.9rem;font-family:inherit;outline:none;resize:vertical;line-height:1.6;min-height:72px}
+.p-ta:focus{border-color:var(--pr)}
+
+/* 完了画面 */
+.done-body{flex:1;display:flex;flex-direction:column;justify-content:center}
+.done-icon{font-size:4rem;text-align:center;margin-bottom:14px}
+.done-title{font-size:1.6rem;font-weight:700;color:var(--pr);text-align:center;margin-bottom:6px}
+.done-sub{font-size:.9rem;color:var(--mu);text-align:center;margin-bottom:24px}
+.info-box{background:var(--acc);border-radius:8px;padding:16px;margin-bottom:12px;border-left:4px solid var(--pr)}
+.info-box p{font-size:.88rem;line-height:1.8}
+.info-box strong{color:var(--pr)}
+.restart-btn{width:100%;padding:13px;background:var(--card);border:2px solid var(--pr);
+  border-radius:8px;color:var(--pr);font-size:1rem;font-weight:700;cursor:pointer;
+  font-family:inherit;margin-top:14px;transition:background .2s}
+.restart-btn:hover{background:var(--acc)}
+</style>
+</head>
+<body>
+
+<!-- ===== 管理者設定（ここを変更） ===== -->
+<script>
+const CONFIG = {
+  SCHOOL_NAME: "船橋市立船橋高等学校",
+  MAIL_TO: "m-takahashi@ichifuna.ed.jp",
+  FORM_TITLE: "DX機器活用授業実践報告書（令和8年度）",
+};
+</script>
+
+<div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+
+<!-- ===== s0: イントロ ===== -->
+<div class="screen active" id="s0">
+  <div class="intro-body">
+    <div class="intro-icon">📋</div>
+    <h1 class="intro-title" id="appTitle"></h1>
+    <p class="intro-sub">8つの質問に答えるだけで報告書が完成します。<br>キーワードを入力すると、AIが文章に整えてくれます。</p>
+    <div class="intro-list">
+      <div class="intro-item"><div class="num">1</div><div class="txt">質問に答える（8ステップ）</div></div>
+      <div class="intro-item"><div class="num">2</div><div class="txt">✨ AIがキーワードを報告書の文章に変換</div></div>
+      <div class="intro-item"><div class="num">3</div><div class="txt">内容を確認・編集</div></div>
+      <div class="intro-item"><div class="num">4</div><div class="txt">Excelをダウンロード → メールで送付</div></div>
+    </div>
+    <button class="start-btn" onclick="go(1)">はじめる　→</button>
+  </div>
+</div>
+
+<!-- ===== s1: 基本情報 ===== -->
+<div class="screen" id="s1">
+  <div class="step-no">STEP 1 / 8　基本情報</div>
+  <h2 class="q-title">基本的な情報を<br>入力してください</h2>
+  <p class="q-hint"></p>
+  <div class="row2" style="margin-bottom:14px">
+    <div class="field" style="margin:0">
+      <label>学年次</label>
+      <select class="sel" id="f_gakunen">
+        <option value="">選択してください</option>
+        <option>1年次</option><option>2年次</option><option>3年次</option>
+        <option value="__other">その他</option>
+      </select>
+      <input type="text" class="inp" id="f_gakunen_other" placeholder="学年を入力" style="display:none;margin-top:8px">
+    </div>
+    <div class="field" style="margin:0">
+      <label>教科</label>
+      <input type="text" class="inp" id="f_kyoka" placeholder="例：情報" maxlength="20">
+    </div>
+  </div>
+  <div class="field">
+    <label>単元名（章・節など）</label>
+    <input type="text" class="inp" id="f_tangen" placeholder="例：第4章　アルゴリズムとプログラミング" maxlength="80">
+  </div>
+</div>
+
+<!-- ===== s2: 本時のねらい ===== -->
+<div class="screen" id="s2">
+  <div class="step-no">STEP 2 / 8　本時のねらい</div>
+  <h2 class="q-title">この授業の<br>ねらいを教えてください</h2>
+  <p class="q-hint">キーワードや箇条書きでもOKです。「✨AIで整える」ボタンで報告書向けの文章に変換できます。</p>
+  <div class="field">
+    <textarea class="ta" id="f_nerai" rows="5"
+      placeholder="例：&#10;・論理的思考力を育てる&#10;・プログラミングの基礎を体験させる&#10;・グループで協力して問題解決する"></textarea>
+    <button class="ai-btn" onclick="aiExpand('f_nerai','本時のねらい',this)">✨ AIで文章を整える</button>
+  </div>
+</div>
+
+<!-- ===== s3: 活用機器 ===== -->
+<div class="screen" id="s3">
+  <div class="step-no">STEP 3 / 8　活用した機器</div>
+  <h2 class="q-title">使った機器・コンテンツを<br>教えてください</h2>
+  <p class="q-hint">最大2つ入力できます。1つでも大丈夫です。</p>
+  <div class="card">
+    <div class="card-lbl">【機器１】必須</div>
+    <div class="field"><label>機器・コンテンツ名</label>
+      <input type="text" class="inp" id="f_k1name" placeholder="例：Lego SPIKEプライム、電子黒板" maxlength="60"></div>
+    <div class="field"><label>活用のねらい</label>
+      <input type="text" class="inp" id="f_k1nerai" placeholder="例：プログラミング体験による論理思考力育成" maxlength="100"></div>
+    <div class="field" style="margin:0"><label>活用の効果</label>
+      <input type="text" class="inp" id="f_k1koka" placeholder="例：情報活用能力の向上" maxlength="60"></div>
+  </div>
+  <div class="card">
+    <div class="card-lbl">【機器２】<span style="font-weight:400;color:#aaa;font-size:.78rem">任意</span></div>
+    <div class="field"><label>機器・コンテンツ名<span class="opt">（任意）</span></label>
+      <input type="text" class="inp" id="f_k2name" maxlength="60"></div>
+    <div class="field"><label>活用のねらい<span class="opt">（任意）</span></label>
+      <input type="text" class="inp" id="f_k2nerai" maxlength="100"></div>
+    <div class="field" style="margin:0"><label>活用の効果<span class="opt">（任意）</span></label>
+      <input type="text" class="inp" id="f_k2koka" maxlength="60"></div>
+  </div>
+</div>
+
+<!-- ===== s4: 導入 ===== -->
+<div class="screen" id="s4">
+  <div class="step-no">STEP 4 / 8　本時の展開①</div>
+  <h2 class="q-title">「導入」の<br>活動を教えてください</h2>
+  <p class="q-hint">授業の最初の部分です。</p>
+  <div class="phase-badge">導入</div>
+  <div class="field">
+    <label>時間（分）</label>
+    <input type="number" class="inp" id="f_d_min" placeholder="例：5" min="0" max="999" style="max-width:110px">
+  </div>
+  <div class="field">
+    <label>主な学習活動</label>
+    <textarea class="ta" id="f_d_act" rows="4"
+      placeholder="例：&#10;・自動運転の動画を見せ興味を引き出す&#10;・「ロボットはどうやって方向を決めているの？」と問いかける"></textarea>
+    <button class="ai-btn" onclick="aiExpand('f_d_act','導入の学習活動',this)">✨ AIで文章を整える</button>
+  </div>
+  <div class="field" style="margin:0">
+    <label>活用したDX機器・教材等<span class="opt">（任意）</span></label>
+    <input type="text" class="inp" id="f_d_kiki" placeholder="例：電子黒板、動画素材" maxlength="80">
+  </div>
+</div>
+
+<!-- ===== s5: 展開 ===== -->
+<div class="screen" id="s5">
+  <div class="step-no">STEP 5 / 8　本時の展開②</div>
+  <h2 class="q-title">「展開」の<br>活動を教えてください</h2>
+  <p class="q-hint">授業の中心となる部分です。</p>
+  <div class="phase-badge">展開</div>
+  <div class="field">
+    <label>時間（分）</label>
+    <input type="number" class="inp" id="f_t_min" placeholder="例：40" min="0" max="999" style="max-width:110px">
+  </div>
+  <div class="field">
+    <label>主な学習活動</label>
+    <textarea class="ta" id="f_t_act" rows="5"
+      placeholder="例：&#10;・プログラムを作成してロボットを走らせる&#10;・意図通りに動かない原因を考えて改善する&#10;・学習データを修正して精度向上を確認する"></textarea>
+    <button class="ai-btn" onclick="aiExpand('f_t_act','展開の学習活動',this)">✨ AIで文章を整える</button>
+  </div>
+  <div class="field" style="margin:0">
+    <label>活用したDX機器・教材等<span class="opt">（任意）</span></label>
+    <input type="text" class="inp" id="f_t_kiki" placeholder="例：タブレット端末、プログラミングソフト" maxlength="80">
+  </div>
+</div>
+
+<!-- ===== s6: まとめ ===== -->
+<div class="screen" id="s6">
+  <div class="step-no">STEP 6 / 8　本時の展開③</div>
+  <h2 class="q-title">「まとめ」の<br>活動を教えてください</h2>
+  <p class="q-hint">授業の最後の部分です。</p>
+  <div class="phase-badge">まとめ</div>
+  <div class="field">
+    <label>時間（分）</label>
+    <input type="number" class="inp" id="f_m_min" placeholder="例：5" min="0" max="999" style="max-width:110px">
+  </div>
+  <div class="field">
+    <label>主な学習活動</label>
+    <textarea class="ta" id="f_m_act" rows="4"
+      placeholder="例：&#10;・各班の結果を発表・共有する&#10;・「なぜうまくいったか」を言語化する&#10;・振り返りシートに記入する"></textarea>
+    <button class="ai-btn" onclick="aiExpand('f_m_act','まとめの学習活動',this)">✨ AIで文章を整える</button>
+  </div>
+  <div class="field" style="margin:0">
+    <label>活用したDX機器・教材等<span class="opt">（任意）</span></label>
+    <input type="text" class="inp" id="f_m_kiki" maxlength="80">
+  </div>
+</div>
+
+<!-- ===== s7: 写真 ===== -->
+<div class="screen" id="s7">
+  <div class="step-no">STEP 7 / 8　写真</div>
+  <h2 class="q-title">授業の写真を<br>アップロードしてください</h2>
+  <p class="q-hint">任意です。写真がない場合はそのまま「次へ」を押してください。（最大2枚）</p>
+  <div class="row2">
+    <div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--pr);margin-bottom:8px">写真１</div>
+      <div class="photo-box" id="pa1" onclick="document.getElementById('pi1').click()">
+        <div class="icon">📷</div><div class="ph">タップして選択</div>
+      </div>
+      <input type="file" id="pi1" accept="image/*">
+      <button class="photo-clr" id="pc1" onclick="clearPhoto(1)">× 削除</button>
+    </div>
+    <div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--pr);margin-bottom:8px">写真２</div>
+      <div class="photo-box" id="pa2" onclick="document.getElementById('pi2').click()">
+        <div class="icon">📷</div><div class="ph">タップして選択</div>
+      </div>
+      <input type="file" id="pi2" accept="image/*">
+      <button class="photo-clr" id="pc2" onclick="clearPhoto(2)">× 削除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== s8: 感想・その他 ===== -->
+<div class="screen" id="s8">
+  <div class="step-no">STEP 8 / 8　感想・その他</div>
+  <h2 class="q-title">DX機器を使ってみて<br>いかがでしたか？</h2>
+  <p class="q-hint">導入前後の変化、生徒の反応、改善点などをキーワードや箇条書きで書けます。</p>
+  <div class="field">
+    <label>感想・反省（生徒の反応含む）</label>
+    <textarea class="ta" id="f_kansou" rows="4"
+      placeholder="例：&#10;・実行結果が即時に可視化され、生徒が自ら課題を発見する場面が増えた&#10;・グループでの相談が活発になった"></textarea>
+    <button class="ai-btn" onclick="aiExpand('f_kansou','DX機器活用の感想・反省（生徒の反応含む）',this)">✨ AIで文章を整える</button>
+  </div>
+  <div class="field" style="margin:0">
+    <label>その他の参考事項<span class="opt">（任意）</span></label>
+    <textarea class="ta" id="f_sonota" rows="3" placeholder="他教科との関連、今後の展望など（任意）"></textarea>
+  </div>
+</div>
+
+<!-- ===== s9: 確認・編集 ===== -->
+<div class="screen" id="s9">
+  <div class="step-no">確認・編集</div>
+  <h2 class="q-title">報告書の内容を<br>確認してください</h2>
+  <p class="q-hint">各項目をタップすると編集できます。問題なければ「Excelをダウンロード」を押してください。</p>
+  <div id="previewArea"></div>
+</div>
+
+<!-- ===== s10: 完了 ===== -->
+<div class="screen" id="s10">
+  <div class="done-body">
+    <div class="done-icon">✅</div>
+    <div class="done-title">報告書を生成しました！</div>
+    <div class="done-sub">Excelファイルのダウンロードが始まりました</div>
+    <div class="info-box">
+      <p>📧 次のステップ：<br>
+         ダウンロードされた <strong>Excelファイル</strong> を、<br>
+         <strong id="mailTo"></strong> 宛に<br>
+         メールで添付して送付してください。<br><br>
+         ※ メールアプリが自動で開いた場合は、<br>
+         　 Excelファイルを添付して送信してください。</p>
+    </div>
+    <button class="restart-btn" onclick="restart()">🔄 別の報告書を作成する</button>
+  </div>
+</div>
+
+<!-- 固定ナビゲーションバー -->
+<div class="nav-wrap" id="navWrap" style="display:none">
+  <div class="nav-inner">
+    <button class="btn-back" id="btnBack" onclick="goBack()" style="visibility:hidden">← 戻る</button>
+    <button class="btn-next" id="btnNext" onclick="goNext()">次へ　→</button>
+  </div>
+</div>
+
+<script src="exceljs.min.js"></script>
+<script>
+// ===== 初期化 =====
+document.getElementById("appTitle").textContent = CONFIG.FORM_TITLE;
+document.getElementById("mailTo").textContent = CONFIG.MAIL_TO;
+
+// 学年次「その他」の入力欄
+document.getElementById("f_gakunen").addEventListener("change", function () {
+  document.getElementById("f_gakunen_other").style.display =
+    this.value === "__other" ? "block" : "none";
+});
+
+// ===== ウィザード状態 =====
+let cur = 0;
+const photos = { 1: null, 2: null };
+
+function go(n) {
+  // 前の画面のバリデーション（次へ進む時だけ）
+  if (n > cur && n <= 9 && !validate(cur)) return;
+
+  document.getElementById("s" + cur).classList.remove("active");
+  cur = n;
+  document.getElementById("s" + cur).classList.add("active");
+  window.scrollTo(0, 0);
+
+  // プログレスバー（STEP 1〜8 を 0〜100% に対応）
+  const pct = cur <= 0 ? 0 : cur >= 9 ? 100 : (cur / 8) * 100;
+  document.getElementById("pfill").style.width = pct + "%";
+
+  // ナビバーの表示
+  const nav = document.getElementById("navWrap");
+  nav.style.display = (cur === 0 || cur === 10) ? "none" : "block";
+
+  // 戻るボタン
+  document.getElementById("btnBack").style.visibility = cur <= 1 ? "hidden" : "visible";
+
+  // 次へボタンのラベル
+  const btnNext = document.getElementById("btnNext");
+  if (cur === 8) {
+    btnNext.textContent = "確認画面へ進む　→";
+  } else if (cur === 9) {
+    btnNext.textContent = "📥 Excelをダウンロード";
+    buildPreview();
+  } else {
+    btnNext.textContent = "次へ　→";
+  }
+}
+
+function goNext() {
+  if (cur === 9) doDownload();
+  else go(cur + 1);
+}
+function goBack() {
+  if (cur > 1) go(cur - 1);
+}
+function restart() {
+  document.querySelectorAll(".inp,.sel,.ta").forEach(el => el.value = "");
+  document.getElementById("f_gakunen_other").style.display = "none";
+  clearPhoto(1); clearPhoto(2);
+  go(0);
+}
+
+// ===== バリデーション =====
+function validate(step) {
+  const rules = {
+    1: [
+      ["f_gakunen", "学年次を選択してください"],
+      ["f_kyoka",   "教科を入力してください"],
+      ["f_tangen",  "単元名を入力してください"],
+    ],
+    2: [["f_nerai",  "本時のねらいを入力してください"]],
+    3: [
+      ["f_k1name",  "機器１の名前を入力してください"],
+      ["f_k1nerai", "機器１の活用のねらいを入力してください"],
+      ["f_k1koka",  "機器１の活用の効果を入力してください"],
+    ],
+  };
+  const list = rules[step];
+  if (!list) return true;
+  for (const [id, msg] of list) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    if (id === "f_gakunen" && el.value === "__other") {
+      if (!document.getElementById("f_gakunen_other").value.trim()) {
+        alert("学年次を入力してください。");
+        document.getElementById("f_gakunen_other").focus();
+        return false;
+      }
+    } else if (!el.value.trim()) {
+      alert(msg); el.focus(); return false;
+    }
+  }
+  return true;
+}
+
+// ===== 写真 =====
+function setupPhoto(n) {
+  document.getElementById("pi" + n).addEventListener("change", function () {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const url = e.target.result;
+      photos[n] = { base64: url.split(",")[1], ext: file.type === "image/png" ? "png" : "jpeg", url };
+      const box = document.getElementById("pa" + n);
+      box.innerHTML = `<img src="${url}">`;
+      box.classList.add("has-img");
+      document.getElementById("pc" + n).style.display = "inline";
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function clearPhoto(n) {
+  photos[n] = null;
+  document.getElementById("pa" + n).innerHTML = '<div class="icon">📷</div><div class="ph">タップして選択</div>';
+  document.getElementById("pa" + n).classList.remove("has-img");
+  document.getElementById("pi" + n).value = "";
+  document.getElementById("pc" + n).style.display = "none";
+}
+setupPhoto(1); setupPhoto(2);
+
+// ===== AI補完（Netlify Function 経由） =====
+async function aiExpand(fieldId, fieldName, btn) {
+  const field = document.getElementById(fieldId);
+  const input = field.value.trim();
+  if (!input) { alert("まず内容を入力してください。"); return; }
+
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "✨ 生成中...";
+
+  try {
+    const res = await fetch("/.netlify/functions/ai-expand", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: input, fieldName }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "サーバーエラー " + res.status);
+    field.value = data.result || "";
+  } catch (e) {
+    alert("AI補完でエラーが発生しました:\n" + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
+// ===== プレビュー生成 =====
+function gv(id) { return (document.getElementById(id)?.value || "").trim(); }
+function esc(s) {
+  return (s || "").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function getGakunen() {
+  const v = gv("f_gakunen");
+  return v === "__other" ? gv("f_gakunen_other") : v;
+}
+function pRow(lbl, id, multi = false) {
+  return `<div class="preview-row"><div class="lbl">${lbl}</div>${
+    multi
+      ? `<textarea class="p-ta" id="p_${id}">${esc(gv("f_" + id))}</textarea>`
+      : `<input class="p-inp" id="p_${id}" value="${esc(gv("f_" + id))}">`
+  }</div>`;
+}
+
+function buildPreview() {
+  document.getElementById("previewArea").innerHTML = `
+    <div class="preview-block">
+      <div class="preview-head">基本情報</div>
+      <div class="preview-row"><div class="lbl">学年次</div>
+        <input class="p-inp" id="p_gakunen" value="${esc(getGakunen())}"></div>
+      ${pRow("教科","kyoka")}
+      ${pRow("単元名","tangen")}
+      <div class="preview-row"><div class="lbl">本時のねらい</div>
+        <textarea class="p-ta" id="p_nerai">${esc(gv("f_nerai"))}</textarea></div>
+    </div>
+    <div class="preview-block">
+      <div class="preview-head">活用した機器</div>
+      ${pRow("機器１：名前","k1name")}
+      ${pRow("機器１：活用のねらい","k1nerai")}
+      ${pRow("機器１：活用の効果","k1koka")}
+      ${pRow("機器２：名前（任意）","k2name")}
+      ${pRow("機器２：活用のねらい","k2nerai")}
+      ${pRow("機器２：活用の効果","k2koka")}
+    </div>
+    <div class="preview-block">
+      <div class="preview-head">本時の展開</div>
+      <div class="preview-row"><div class="lbl">導入（分）</div>
+        <input class="p-inp" id="p_d_min" value="${esc(gv("f_d_min"))}" style="max-width:90px"></div>
+      <div class="preview-row"><div class="lbl">導入：学習活動</div>
+        <textarea class="p-ta" id="p_d_act">${esc(gv("f_d_act"))}</textarea></div>
+      <div class="preview-row"><div class="lbl">導入：活用DX機器</div>
+        <input class="p-inp" id="p_d_kiki" value="${esc(gv("f_d_kiki"))}"></div>
+      <div class="preview-row"><div class="lbl">展開（分）</div>
+        <input class="p-inp" id="p_t_min" value="${esc(gv("f_t_min"))}" style="max-width:90px"></div>
+      <div class="preview-row"><div class="lbl">展開：学習活動</div>
+        <textarea class="p-ta" id="p_t_act">${esc(gv("f_t_act"))}</textarea></div>
+      <div class="preview-row"><div class="lbl">展開：活用DX機器</div>
+        <input class="p-inp" id="p_t_kiki" value="${esc(gv("f_t_kiki"))}"></div>
+      <div class="preview-row"><div class="lbl">まとめ（分）</div>
+        <input class="p-inp" id="p_m_min" value="${esc(gv("f_m_min"))}" style="max-width:90px"></div>
+      <div class="preview-row"><div class="lbl">まとめ：学習活動</div>
+        <textarea class="p-ta" id="p_m_act">${esc(gv("f_m_act"))}</textarea></div>
+      <div class="preview-row"><div class="lbl">まとめ：活用DX機器</div>
+        <input class="p-inp" id="p_m_kiki" value="${esc(gv("f_m_kiki"))}"></div>
+    </div>
+    <div class="preview-block">
+      <div class="preview-head">感想・その他</div>
+      <div class="preview-row"><div class="lbl">感想・反省</div>
+        <textarea class="p-ta" id="p_kansou" style="min-height:90px">${esc(gv("f_kansou"))}</textarea></div>
+      <div class="preview-row"><div class="lbl">その他の参考事項</div>
+        <textarea class="p-ta" id="p_sonota">${esc(gv("f_sonota"))}</textarea></div>
+    </div>
+    ${photos[1] || photos[2] ? `
+    <div class="preview-block">
+      <div class="preview-head">写真</div>
+      <div class="preview-row">
+        <div class="row2">
+          ${photos[1] ? `<div><div style="font-size:.72rem;color:var(--mu);margin-bottom:4px">写真１</div>
+            <img src="${photos[1].url}" style="max-width:100%;max-height:120px;border-radius:4px;object-fit:contain"></div>` : "<div></div>"}
+          ${photos[2] ? `<div><div style="font-size:.72rem;color:var(--mu);margin-bottom:4px">写真２</div>
+            <img src="${photos[2].url}" style="max-width:100%;max-height:120px;border-radius:4px;object-fit:contain"></div>` : "<div></div>"}
+        </div>
+      </div>
+    </div>` : ""}
+  `;
+}
+
+// ===== プレビューの値を取得 =====
+function pv(id) { return (document.getElementById(id)?.value || "").trim(); }
+
+// ===== Excel生成・ダウンロード =====
+async function doDownload() {
+  const btn = document.getElementById("btnNext");
+  btn.disabled = true; btn.textContent = "生成中...";
+  try {
+    await buildExcel();
+    go(10);
+    // メールアプリを開く
+    setTimeout(() => {
+      const sub = encodeURIComponent(CONFIG.FORM_TITLE + "　" + pv("p_gakunen") + "　" + pv("p_kyoka"));
+      const bod = encodeURIComponent(
+        `${CONFIG.FORM_TITLE}を送付します。\n添付ファイルをご確認ください。\n\n学年・教科：${pv("p_gakunen")} ${pv("p_kyoka")}\n単元名：${pv("p_tangen")}`
+      );
+      window.location.href = `mailto:${CONFIG.MAIL_TO}?subject=${sub}&body=${bod}`;
+    }, 800);
+  } catch (e) {
+    alert("Excelの生成でエラーが発生しました:\n" + e.message);
+    console.error(e);
+  } finally {
+    btn.disabled = false; btn.textContent = "📥 Excelをダウンロード";
+  }
+}
+
+async function buildExcel() {
+  const wb = new ExcelJS.Workbook();
+  wb.created = new Date();
+  const ws = wb.addWorksheet("報告書", {
+    pageSetup: { paperSize: 9, orientation: "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 0 }
+  });
+
+  ws.columns = [
+    { key: "A", width: 11 }, { key: "B", width: 5  }, { key: "C", width: 22 },
+    { key: "D", width: 22 }, { key: "E", width: 10 }, { key: "F", width: 22 },
+  ];
+
+  const bdr = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
+  const hFill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFD9E2F3"} };
+  const sFill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFEAF0FA"} };
+
+  function sc(addr, val, o = {}) {
+    const c = ws.getCell(addr);
+    c.value = val;
+    c.font = { name:"Yu Gothic", size: o.sz || 10, bold: !!o.b };
+    c.alignment = { vertical: o.va || "top", horizontal: o.ha || "left", wrapText: o.wrap !== false };
+    if (o.fill) c.fill = o.fill;
+    if (o.border !== false) c.border = bdr;
+  }
+
+  // 行1: ヘッダー
+  ws.getRow(1).height = 20;
+  ws.mergeCells("A1:B1"); sc("A1", pv("p_gakunen"), { b:true, ha:"center", va:"middle" });
+  sc("C1", pv("p_kyoka"), { b:true, ha:"center", va:"middle" });
+  ws.mergeCells("D1:E1"); sc("D1", pv("p_tangen"), { b:true, va:"middle" });
+  sc("F1", CONFIG.SCHOOL_NAME, { ha:"center", va:"middle", sz:9 });
+
+  // 行2: 本時のねらい
+  ws.getRow(2).height = 45;
+  sc("A2", "本時のねらい", { b:true, ha:"center", va:"middle", fill:hFill });
+  ws.mergeCells("B2:F2"); sc("B2", pv("p_nerai"), { va:"top" });
+
+  // 行3: 機器ヘッダー
+  ws.getRow(3).height = 18;
+  ws.mergeCells("A3:B3"); sc("A3", "活用した主な機器・コンテンツ", { b:true, ha:"center", va:"middle", fill:hFill, sz:9 });
+  ws.mergeCells("C3:E3"); sc("C3", "活用のねらい", { b:true, ha:"center", va:"middle", fill:hFill });
+  sc("F3", "活用の効果", { b:true, ha:"center", va:"middle", fill:hFill });
+
+  // 行4〜5: 機器データ
+  for (const [r, k] of [[4,"1"],[5,"2"]]) {
+    ws.getRow(r).height = 28;
+    ws.mergeCells(`A${r}:B${r}`); sc(`A${r}`, pv("p_k"+k+"name"));
+    ws.mergeCells(`C${r}:E${r}`); sc(`C${r}`, pv("p_k"+k+"nerai"));
+    sc(`F${r}`, pv("p_k"+k+"koka"));
+  }
+
+  // 行6: 本時の展開ヘッダー
+  ws.getRow(6).height = 18;
+  ws.mergeCells("A6:F6"); sc("A6", "本時の展開", { b:true, va:"middle", fill:hFill });
+
+  // 行7: 展開列ヘッダー
+  ws.getRow(7).height = 18;
+  sc("A7", "学習の流れ", { b:true, ha:"center", va:"middle", fill:sFill, sz:9 });
+  sc("B7", "分",         { b:true, ha:"center", va:"middle", fill:sFill });
+  ws.mergeCells("C7:E7"); sc("C7", "主　な　学　習　活　動", { b:true, ha:"center", va:"middle", fill:sFill });
+  sc("F7", "活用DX機器・教材等", { b:true, ha:"center", va:"middle", fill:sFill, sz:9 });
+
+  // 行8〜10: 導入・展開・まとめ
+  const phases = [
+    [8,  "導　入", "p_d_min","p_d_act","p_d_kiki", 65 ],
+    [9,  "展　開", "p_t_min","p_t_act","p_t_kiki", 100],
+    [10, "まとめ", "p_m_min","p_m_act","p_m_kiki", 65 ],
+  ];
+  for (const [r, lbl, minId, actId, kikiId, h] of phases) {
+    ws.getRow(r).height = h;
+    sc(`A${r}`, lbl,             { b:true, ha:"center", va:"middle" });
+    sc(`B${r}`, pv(minId) || "", { ha:"center", va:"middle" });
+    ws.mergeCells(`C${r}:E${r}`); sc(`C${r}`, pv(actId),  { va:"top" });
+    sc(`F${r}`, pv(kikiId), { va:"top" });
+  }
+
+  // 行11〜15: 写真エリア
+  for (let r = 11; r <= 15; r++) ws.getRow(r).height = 38;
+  ws.mergeCells("A11:C15");
+  ws.getCell("A11").border = bdr;
+  ws.getCell("A11").alignment = { vertical:"middle", horizontal:"center" };
+  ws.mergeCells("D11:F15");
+  ws.getCell("D11").border = bdr;
+  ws.getCell("D11").alignment = { vertical:"middle", horizontal:"center" };
+
+  // 行16: 写真キャプション
+  ws.getRow(16).height = 14;
+  ws.mergeCells("A16:C16"); sc("A16", "写真１：", { border:false });
+  ws.mergeCells("D16:F16"); sc("D16", "写真２：", { border:false });
+
+  // 行17: 感想ヘッダー
+  ws.getRow(17).height = 18;
+  ws.mergeCells("A17:F17");
+  sc("A17", "DX機器導入前と導入後の実践者の感想・反省（生徒の反応含む）", { b:true, va:"middle", fill:hFill });
+
+  // 行18〜20: 感想テキスト
+  for (let r = 18; r <= 20; r++) ws.getRow(r).height = 20;
+  ws.mergeCells("A18:F20"); sc("A18", pv("p_kansou"), { va:"top" });
+
+  // 行21: その他ヘッダー
+  ws.getRow(21).height = 18;
+  ws.mergeCells("A21:F21");
+  sc("A21", "その他の参考事項", { b:true, va:"middle", fill:hFill });
+
+  // 行22〜24: その他テキスト
+  for (let r = 22; r <= 24; r++) ws.getRow(r).height = 20;
+  ws.mergeCells("A22:F24"); sc("A22", pv("p_sonota"), { va:"top" });
+
+  // 写真埋め込み
+  for (const [n, tl, br] of [
+    [1, { col:0, row:10 }, { col:3, row:15 }],
+    [2, { col:3, row:10 }, { col:6, row:15 }],
+  ]) {
+    if (photos[n]) {
+      try {
+        const id = wb.addImage({ base64: photos[n].base64, extension: photos[n].ext });
+        ws.addImage(id, {
+          tl: { col: tl.col + 0.05, row: tl.row + 0.05 },
+          br: { col: br.col - 0.05, row: br.row - 0.05 },
+          editAs: "twoCell",
+        });
+      } catch (e) { console.warn("写真の挿入に失敗:", e); }
+    }
+  }
+
+  // ダウンロード
+  const fname = `DX機器活用授業実践報告書_${pv("p_gakunen")}_${pv("p_kyoka")}.xlsx`
+    .replace(/[\\/:*?"<>|]/g, "_");
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = fname;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 2000);
+}
+</script>
+</body>
+</html>
