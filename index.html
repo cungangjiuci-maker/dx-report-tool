@@ -48,6 +48,34 @@ body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;bac
 .ai-btn:hover{opacity:.9}.ai-btn:active{transform:scale(.97)}
 .ai-btn:disabled{opacity:.6;cursor:not-allowed}
 
+/* AI一括整形モーダル */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
+  display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal-box{background:#fff;border-radius:16px;padding:28px 24px;max-width:460px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-icon{font-size:2.4rem;text-align:center;margin-bottom:10px}
+.modal-title{font-size:1.3rem;font-weight:700;color:var(--pr);text-align:center;margin-bottom:6px}
+.modal-sub{font-size:.85rem;color:var(--mu);text-align:center;margin-bottom:20px;line-height:1.6}
+.modal-fields{background:#f8fafd;border-radius:10px;padding:12px 16px;margin-bottom:20px}
+.mf-row{display:flex;align-items:center;gap:10px;padding:7px 0;
+  border-bottom:1px solid #eef0f4;font-size:.88rem}
+.mf-row:last-child{border-bottom:none}
+.mf-status{min-width:70px;text-align:right;font-size:.78rem;font-weight:700;color:var(--mu)}
+.mf-status.doing{color:#764ba2}.mf-status.done{color:var(--gn)}
+.mf-name{flex:1;color:var(--text)}
+.modal-btns{display:flex;flex-direction:column;gap:10px}
+.modal-do-btn{width:100%;padding:14px;background:linear-gradient(135deg,#667eea,#764ba2);
+  color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;
+  cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(102,126,234,.4);
+  transition:opacity .2s}
+.modal-do-btn:disabled{opacity:.6;cursor:not-allowed}
+.modal-skip-btn{width:100%;padding:11px;background:none;border:2px solid var(--bd);
+  border-radius:10px;font-size:.9rem;cursor:pointer;font-family:inherit;color:var(--mu);
+  transition:border-color .2s}
+.modal-skip-btn:hover{border-color:var(--pr);color:var(--pr)}
+.modal-skip-btn:disabled{opacity:.5;cursor:not-allowed}
+
 /* カード */
 .card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:12px}
 .card-lbl{font-size:.78rem;font-weight:700;color:var(--pr);margin-bottom:12px}
@@ -182,11 +210,10 @@ const CONFIG = {
 <div class="screen" id="s2">
   <div class="step-no">STEP 2 / 8　本時のねらい</div>
   <h2 class="q-title">この授業の<br>ねらいを教えてください</h2>
-  <p class="q-hint">キーワードや箇条書きでもOKです。「✨AIで整える」ボタンで報告書向けの文章に変換できます。</p>
+  <p class="q-hint">キーワードや箇条書きでもOKです。すべて入力し終わった後、まとめてAIが文章に整えます。</p>
   <div class="field">
     <textarea class="ta" id="f_nerai" rows="5"
       placeholder="例：&#10;・論理的思考力を育てる&#10;・プログラミングの基礎を体験させる&#10;・グループで協力して問題解決する"></textarea>
-    <button class="ai-btn" onclick="aiExpand('f_nerai','本時のねらい',this)">✨ AIで文章を整える</button>
   </div>
 </div>
 
@@ -219,7 +246,7 @@ const CONFIG = {
 <div class="screen" id="s4">
   <div class="step-no">STEP 4 / 8　本時の展開①</div>
   <h2 class="q-title">「導入」の<br>活動を教えてください</h2>
-  <p class="q-hint">授業の最初の部分です。</p>
+  <p class="q-hint">授業の最初の部分です。キーワードや箇条書きで入力してください。</p>
   <div class="phase-badge">導入</div>
   <div class="field">
     <label>時間（分）</label>
@@ -229,7 +256,6 @@ const CONFIG = {
     <label>主な学習活動</label>
     <textarea class="ta" id="f_d_act" rows="4"
       placeholder="例：&#10;・自動運転の動画を見せ興味を引き出す&#10;・「ロボットはどうやって方向を決めているの？」と問いかける"></textarea>
-    <button class="ai-btn" onclick="aiExpand('f_d_act','導入の学習活動',this)">✨ AIで文章を整える</button>
   </div>
   <div class="field" style="margin:0">
     <label>活用したDX機器・教材等<span class="opt">（任意）</span></label>
@@ -241,7 +267,7 @@ const CONFIG = {
 <div class="screen" id="s5">
   <div class="step-no">STEP 5 / 8　本時の展開②</div>
   <h2 class="q-title">「展開」の<br>活動を教えてください</h2>
-  <p class="q-hint">授業の中心となる部分です。</p>
+  <p class="q-hint">授業の中心となる部分です。キーワードや箇条書きで入力してください。</p>
   <div class="phase-badge">展開</div>
   <div class="field">
     <label>時間（分）</label>
@@ -251,7 +277,6 @@ const CONFIG = {
     <label>主な学習活動</label>
     <textarea class="ta" id="f_t_act" rows="5"
       placeholder="例：&#10;・プログラムを作成してロボットを走らせる&#10;・意図通りに動かない原因を考えて改善する&#10;・学習データを修正して精度向上を確認する"></textarea>
-    <button class="ai-btn" onclick="aiExpand('f_t_act','展開の学習活動',this)">✨ AIで文章を整える</button>
   </div>
   <div class="field" style="margin:0">
     <label>活用したDX機器・教材等<span class="opt">（任意）</span></label>
@@ -263,7 +288,7 @@ const CONFIG = {
 <div class="screen" id="s6">
   <div class="step-no">STEP 6 / 8　本時の展開③</div>
   <h2 class="q-title">「まとめ」の<br>活動を教えてください</h2>
-  <p class="q-hint">授業の最後の部分です。</p>
+  <p class="q-hint">授業の最後の部分です。キーワードや箇条書きで入力してください。</p>
   <div class="phase-badge">まとめ</div>
   <div class="field">
     <label>時間（分）</label>
@@ -273,7 +298,6 @@ const CONFIG = {
     <label>主な学習活動</label>
     <textarea class="ta" id="f_m_act" rows="4"
       placeholder="例：&#10;・各班の結果を発表・共有する&#10;・「なぜうまくいったか」を言語化する&#10;・振り返りシートに記入する"></textarea>
-    <button class="ai-btn" onclick="aiExpand('f_m_act','まとめの学習活動',this)">✨ AIで文章を整える</button>
   </div>
   <div class="field" style="margin:0">
     <label>活用したDX機器・教材等<span class="opt">（任意）</span></label>
@@ -310,12 +334,11 @@ const CONFIG = {
 <div class="screen" id="s8">
   <div class="step-no">STEP 8 / 8　感想・その他</div>
   <h2 class="q-title">DX機器を使ってみて<br>いかがでしたか？</h2>
-  <p class="q-hint">導入前後の変化、生徒の反応、改善点などをキーワードや箇条書きで書けます。</p>
+  <p class="q-hint">導入前後の変化、生徒の反応、改善点などをキーワードや箇条書きで入力してください。</p>
   <div class="field">
     <label>感想・反省（生徒の反応含む）</label>
     <textarea class="ta" id="f_kansou" rows="4"
       placeholder="例：&#10;・実行結果が即時に可視化され、生徒が自ら課題を発見する場面が増えた&#10;・グループでの相談が活発になった"></textarea>
-    <button class="ai-btn" onclick="aiExpand('f_kansou','DX機器活用の感想・反省（生徒の反応含む）',this)">✨ AIで文章を整える</button>
   </div>
   <div class="field" style="margin:0">
     <label>その他の参考事項<span class="opt">（任意）</span></label>
@@ -346,6 +369,26 @@ const CONFIG = {
          　 Excelファイルを添付して送信してください。</p>
     </div>
     <button class="restart-btn" onclick="restart()">🔄 別の報告書を作成する</button>
+  </div>
+</div>
+
+<!-- ===== AI一括整形モーダル ===== -->
+<div class="modal-overlay" id="aiModal">
+  <div class="modal-box">
+    <div class="modal-icon">✨</div>
+    <div class="modal-title">AIで文章を整えますか？</div>
+    <div class="modal-sub">入力したキーワード・箇条書きを<br>報告書向けの文章にまとめて変換します。</div>
+    <div class="modal-fields" id="modalFields">
+      <div class="mf-row"><span class="mf-name">本時のねらい</span><span class="mf-status" id="ms_nerai">待機中</span></div>
+      <div class="mf-row"><span class="mf-name">導入：学習活動</span><span class="mf-status" id="ms_d_act">待機中</span></div>
+      <div class="mf-row"><span class="mf-name">展開：学習活動</span><span class="mf-status" id="ms_t_act">待機中</span></div>
+      <div class="mf-row"><span class="mf-name">まとめ：学習活動</span><span class="mf-status" id="ms_m_act">待機中</span></div>
+      <div class="mf-row"><span class="mf-name">感想・反省</span><span class="mf-status" id="ms_kansou">待機中</span></div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-do-btn" id="modalDoBtn" onclick="bulkAiExpand()">✨ AIで整える</button>
+      <button class="modal-skip-btn" id="modalSkipBtn" onclick="closeModalAndGo()">このまま確認する</button>
+    </div>
   </div>
 </div>
 
@@ -396,7 +439,7 @@ function go(n) {
   // 次へボタンのラベル
   const btnNext = document.getElementById("btnNext");
   if (cur === 8) {
-    btnNext.textContent = "確認画面へ進む　→";
+    btnNext.textContent = "次へ　→";
   } else if (cur === 9) {
     btnNext.textContent = "📥 Excelをダウンロード";
     buildPreview();
@@ -406,8 +449,15 @@ function go(n) {
 }
 
 function goNext() {
-  if (cur === 9) doDownload();
-  else go(cur + 1);
+  if (cur === 8) {
+    // AI整形モーダルを表示
+    resetModalStatus();
+    document.getElementById("aiModal").classList.add("show");
+  } else if (cur === 9) {
+    doDownload();
+  } else {
+    go(cur + 1);
+  }
 }
 function goBack() {
   if (cur > 1) go(cur - 1);
@@ -479,29 +529,82 @@ function clearPhoto(n) {
 setupPhoto(1); setupPhoto(2);
 
 // ===== AI補完（Netlify Function 経由） =====
-async function aiExpand(fieldId, fieldName, btn) {
+async function aiExpandOne(fieldId, fieldName) {
   const field = document.getElementById(fieldId);
   const input = field.value.trim();
-  if (!input) { alert("まず内容を入力してください。"); return; }
+  if (!input) return; // 空欄はスキップ
 
-  const orig = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = "✨ 生成中...";
+  const res = await fetch("/.netlify/functions/ai-expand", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: input, fieldName }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "サーバーエラー " + res.status);
+  if (data.result) field.value = data.result;
+}
 
-  try {
-    const res = await fetch("/.netlify/functions/ai-expand", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: input, fieldName }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "サーバーエラー " + res.status);
-    field.value = data.result || "";
-  } catch (e) {
-    alert("AI補完でエラーが発生しました:\n" + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = orig;
+// ===== AI一括整形 =====
+const AI_FIELDS = [
+  { id: "f_nerai",   name: "本時のねらい",             statusId: "ms_nerai"  },
+  { id: "f_d_act",   name: "導入の学習活動",           statusId: "ms_d_act"  },
+  { id: "f_t_act",   name: "展開の学習活動",           statusId: "ms_t_act"  },
+  { id: "f_m_act",   name: "まとめの学習活動",         statusId: "ms_m_act"  },
+  { id: "f_kansou",  name: "DX機器活用の感想・反省",   statusId: "ms_kansou" },
+];
+
+function resetModalStatus() {
+  AI_FIELDS.forEach(f => {
+    const el = document.getElementById(f.statusId);
+    el.textContent = "待機中";
+    el.className = "mf-status";
+  });
+  document.getElementById("modalDoBtn").disabled = false;
+  document.getElementById("modalDoBtn").textContent = "✨ AIで整える";
+  document.getElementById("modalSkipBtn").disabled = false;
+}
+
+function closeModalAndGo() {
+  document.getElementById("aiModal").classList.remove("show");
+  go(9);
+}
+
+async function bulkAiExpand() {
+  const doBtn = document.getElementById("modalDoBtn");
+  const skipBtn = document.getElementById("modalSkipBtn");
+  doBtn.disabled = true;
+  skipBtn.disabled = true;
+  doBtn.textContent = "✨ 整形中...";
+
+  let errorOccurred = false;
+  for (const f of AI_FIELDS) {
+    const el = document.getElementById(f.statusId);
+    const field = document.getElementById(f.id);
+    if (!field.value.trim()) {
+      el.textContent = "スキップ";
+      continue;
+    }
+    el.textContent = "整形中...";
+    el.className = "mf-status doing";
+    try {
+      await aiExpandOne(f.id, f.name);
+      el.textContent = "✓ 完了";
+      el.className = "mf-status done";
+    } catch (e) {
+      el.textContent = "エラー";
+      el.className = "mf-status";
+      errorOccurred = true;
+    }
+  }
+
+  if (errorOccurred) {
+    doBtn.disabled = false;
+    doBtn.textContent = "✨ 再試行する";
+    skipBtn.disabled = false;
+    alert("一部の項目でエラーが発生しました。「再試行する」か「このまま確認する」を選んでください。");
+  } else {
+    // 少し待ってから確認画面へ
+    setTimeout(closeModalAndGo, 600);
   }
 }
 
