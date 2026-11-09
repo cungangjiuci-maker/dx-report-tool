@@ -714,6 +714,22 @@ async function doDownload() {
   }
 }
 
+// テキストの長さから必要な行の高さ（ポイント）を計算する
+// charsPerLine: 1行に収まる文字数の目安、ptPerLine: 1行あたりの高さ
+function calcHeight(text, charsPerLine, ptPerLine = 14, minPt = 20) {
+  if (!text) return minPt;
+  let lines = 0;
+  for (const line of text.split("\n")) {
+    lines += Math.max(1, Math.ceil((line.length || 1) / charsPerLine));
+  }
+  return Math.max(minPt, lines * ptPerLine + 6);
+}
+// 複数行にまたがるマージセルの高さを均等分割して各行に設定する
+function setMergedHeight(ws, startRow, endRow, totalPt) {
+  const each = Math.ceil(totalPt / (endRow - startRow + 1));
+  for (let r = startRow; r <= endRow; r++) ws.getRow(r).height = each;
+}
+
 async function buildExcel() {
   const wb = new ExcelJS.Workbook();
   wb.created = new Date();
@@ -746,8 +762,8 @@ async function buildExcel() {
   ws.mergeCells("D1:E1"); sc("D1", pv("p_tangen"), { b:true, va:"middle" });
   sc("F1", CONFIG.SCHOOL_NAME, { ha:"center", va:"middle", sz:9 });
 
-  // 行2: 本時のねらい
-  ws.getRow(2).height = 45;
+  // 行2: 本時のねらい（高さ動的計算）
+  ws.getRow(2).height = Math.max(45, calcHeight(pv("p_nerai"), 65));
   sc("A2", "本時のねらい", { b:true, ha:"center", va:"middle", fill:hFill });
   ws.mergeCells("B2:F2"); sc("B2", pv("p_nerai"), { va:"top" });
 
@@ -776,14 +792,14 @@ async function buildExcel() {
   ws.mergeCells("C7:E7"); sc("C7", "主　な　学　習　活　動", { b:true, ha:"center", va:"middle", fill:sFill });
   sc("F7", "活用DX機器・教材等", { b:true, ha:"center", va:"middle", fill:sFill, sz:9 });
 
-  // 行8〜10: 導入・展開・まとめ
+  // 行8〜10: 導入・展開・まとめ（高さ動的計算）
   const phases = [
     [8,  "導　入", "p_d_min","p_d_act","p_d_kiki", 65 ],
     [9,  "展　開", "p_t_min","p_t_act","p_t_kiki", 100],
     [10, "まとめ", "p_m_min","p_m_act","p_m_kiki", 65 ],
   ];
-  for (const [r, lbl, minId, actId, kikiId, h] of phases) {
-    ws.getRow(r).height = h;
+  for (const [r, lbl, minId, actId, kikiId, minH] of phases) {
+    ws.getRow(r).height = Math.max(minH, calcHeight(pv(actId), 43));
     sc(`A${r}`, lbl,             { b:true, ha:"center", va:"middle" });
     sc(`B${r}`, pv(minId) || "", { ha:"center", va:"middle" });
     ws.mergeCells(`C${r}:E${r}`); sc(`C${r}`, pv(actId),  { va:"top" });
@@ -809,8 +825,8 @@ async function buildExcel() {
   ws.mergeCells("A17:F17");
   sc("A17", "DX機器導入前と導入後の実践者の感想・反省（生徒の反応含む）", { b:true, va:"middle", fill:hFill });
 
-  // 行18〜20: 感想テキスト
-  for (let r = 18; r <= 20; r++) ws.getRow(r).height = 20;
+  // 行18〜20: 感想テキスト（高さ動的計算）
+  setMergedHeight(ws, 18, 20, Math.max(60, calcHeight(pv("p_kansou"), 74)));
   ws.mergeCells("A18:F20"); sc("A18", pv("p_kansou"), { va:"top" });
 
   // 行21: その他ヘッダー
@@ -818,8 +834,8 @@ async function buildExcel() {
   ws.mergeCells("A21:F21");
   sc("A21", "その他の参考事項", { b:true, va:"middle", fill:hFill });
 
-  // 行22〜24: その他テキスト
-  for (let r = 22; r <= 24; r++) ws.getRow(r).height = 20;
+  // 行22〜24: その他テキスト（高さ動的計算）
+  setMergedHeight(ws, 22, 24, Math.max(60, calcHeight(pv("p_sonota"), 74)));
   ws.mergeCells("A22:F24"); sc("A22", pv("p_sonota"), { va:"top" });
 
   // 写真埋め込み
