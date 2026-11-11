@@ -763,8 +763,8 @@ async function doDownload() {
 }
 
 // テキストの長さから必要な行の高さ（ポイント）を計算する
-// charsPerLine: 1行に収まる文字数の目安、ptPerLine: 1行あたりの高さ
-function calcHeight(text, charsPerLine, ptPerLine = 14, minPt = 20) {
+// charsPerLine: 1行に収まる文字数の目安（日本語全角文字基準）、ptPerLine: 1行あたりの高さ
+function calcHeight(text, charsPerLine, ptPerLine = 15, minPt = 20) {
   if (!text) return minPt;
   let lines = 0;
   for (const line of text.split("\n")) {
@@ -811,7 +811,7 @@ async function buildExcel() {
   sc("F1", CONFIG.SCHOOL_NAME, { ha:"center", va:"middle", sz:9 });
 
   // 行2: 本時のねらい（高さ動的計算）
-  ws.getRow(2).height = Math.max(45, calcHeight(pv("p_nerai"), 65));
+  ws.getRow(2).height = Math.max(45, calcHeight(pv("p_nerai"), 38));
   sc("A2", "本時のねらい", { b:true, ha:"center", va:"middle", fill:hFill });
   ws.mergeCells("B2:F2"); sc("B2", pv("p_nerai"), { va:"top" });
 
@@ -847,7 +847,7 @@ async function buildExcel() {
     [10, "まとめ", "p_m_min","p_m_act","p_m_kiki", 65 ],
   ];
   for (const [r, lbl, minId, actId, kikiId, minH] of phases) {
-    ws.getRow(r).height = Math.max(minH, calcHeight(pv(actId), 43));
+    ws.getRow(r).height = Math.max(minH, calcHeight(pv(actId), 26));
     sc(`A${r}`, lbl,             { b:true, ha:"center", va:"middle" });
     sc(`B${r}`, pv(minId) || "", { ha:"center", va:"middle" });
     ws.mergeCells(`C${r}:E${r}`); sc(`C${r}`, pv(actId),  { va:"top" });
@@ -874,7 +874,7 @@ async function buildExcel() {
   sc("A17", "DX機器導入前と導入後の実践者の感想・反省（生徒の反応含む）", { b:true, va:"middle", fill:hFill });
 
   // 行18〜20: 感想テキスト（高さ動的計算）
-  setMergedHeight(ws, 18, 20, Math.max(60, calcHeight(pv("p_kansou"), 74)));
+  setMergedHeight(ws, 18, 20, Math.max(70, calcHeight(pv("p_kansou"), 44)));
   ws.mergeCells("A18:F20"); sc("A18", pv("p_kansou"), { va:"top" });
 
   // 行21: その他ヘッダー
@@ -883,7 +883,7 @@ async function buildExcel() {
   sc("A21", "その他の参考事項", { b:true, va:"middle", fill:hFill });
 
   // 行22〜24: その他テキスト（高さ動的計算）
-  setMergedHeight(ws, 22, 24, Math.max(60, calcHeight(pv("p_sonota"), 74)));
+  setMergedHeight(ws, 22, 24, Math.max(70, calcHeight(pv("p_sonota"), 44)));
   ws.mergeCells("A22:F24"); sc("A22", pv("p_sonota"), { va:"top" });
 
   // 写真埋め込み
